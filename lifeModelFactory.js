@@ -6,7 +6,7 @@ module.exports = (function(){
         o.ySize = o.ySize || 0;
         o.cell = o.cell || {};
 
-        o.cell.live = false;
+        o.cell.alive = false;
         o.cell.updated = false;
         o.cell.color = colorFactory();
 
