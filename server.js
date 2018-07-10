@@ -7,13 +7,21 @@
     var messageCount = 0;
 
     var updateRate = 2000;
-
-    var updates = [];
+    var play = true;
+    
+    var clients = [];
 
     //*
     wss.on('connection', function (ws) {
         ws.on('message', function (message) {
             console.log('received: %s', message);
+            if(message === 'play'){
+                play = true;
+            }
+            if(message === 'pause'){
+                play = false;
+            }
+            
         });
         ws.on('error', function (message) {
             console.log('Error: %s', message);
@@ -40,18 +48,20 @@
             return true;
         };
         
-        updates.push(sendUpdate);
+        clients.push(sendUpdate);
         
     });//*/
     
+    
+    
     function sendOutUpdates(){
-        var up = updates;
-        updates = [];
+        var updates = clients;
+        clients = [];
         
-        for(let i = 0, l = up.length; i < l; i++){
-            let alive = up[i]();
+        for(let i = 0, l = updates.length; i < l; i++){
+            let alive = updates[i]();
             if(alive){
-                updates.push(up[i]);
+                clients.push(updates[i]);
             }else{
                 console.log("connection dropped");
             }
@@ -59,7 +69,10 @@
     }
     
     setInterval(function(){
-        sendOutUpdates();
+        if(play){
+            
+            sendOutUpdates();
+        }
     }, updateRate);
     
 })();
