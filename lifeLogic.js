@@ -66,7 +66,7 @@ module.exports = (function(){
 
                 return result;
             },
-            neighborCoordinates: function (board, coordinates){
+            neighborhood: function (board, coordinates){
                 var endCoordinates = {
                     x: board.length,
                     y: board[0].length
@@ -155,7 +155,7 @@ module.exports = (function(){
         
         
         var cell = copyObj(board[coordinates.x][coordinates.y]);
-        var neighbors = find.neighborCoordinates(board, coordinates);
+        var neighbors = find.neighborhood(board, coordinates);
         var cv = caculatedValues();
         var livingNeighbors = cv.living;
         var newLifeColor = cv.color;

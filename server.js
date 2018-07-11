@@ -126,14 +126,26 @@
         return {model: result.model, txUpdates: result.updates};
     }
     
-    function sendUpdate(txUpdates){
-        var send = {
-            message: 'updates',
-            updates: txUpdates
-        };
-        
-        broadcast(JSON.stringify(send));
-    }
+    var send = {
+        updates: function (txUpdates){
+            var send = {
+                message: 'updates',
+                updates: txUpdates
+            };
+
+            broadcast(JSON.stringify(send));
+        },
+        initialize: function(model){
+            var send = {
+                message: 'initialize',
+                initialize: model
+            };
+
+            broadcast(JSON.stringify(send));
+        }
+    };
+    
+    
     
     setInterval(function(){
         if(play){
