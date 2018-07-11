@@ -113,7 +113,7 @@ module.exports = (function(){
 
         function getTurn(){
             return {
-                turnID: 0,
+                generation: 0,
                 gameID: 0,
                 board: b,
                 userID: 0,

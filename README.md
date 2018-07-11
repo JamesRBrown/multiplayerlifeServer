@@ -83,36 +83,40 @@ Outline of Messaging System:
 
     To server messages:
 
-        {
+        {//user update to model
             message: update,
-            move: {
+            update: {
                 coordinate: {x: 0, y: 0},
                 color: {r: 0, g: 0, b:0},
                 alive: true
             }
         }
 
-        {
+        {//proceed to the next game tick
+            message: nextTick
+        }
+
+        {//start game at set interval rate
             message: play
         }
 
-        {
+        {//pause game
             message: pause
         }
 
-        {
+        {//change the tick interval
             message: interval,
             interval: value
         }
 
     To client messages:
 
-        {
+        {//full model push
             message: initialize,
             initialize: lifeObj
         }
 
-        {
+        {//make updates to client model
             message: updates
             updates: [
                 0: {
@@ -128,15 +132,15 @@ Outline of Messaging System:
             ]
         }
 
-        {
+        {//update UI
             message: play
         }
 
-        {
+        {//update UI
             message: pause
         }
 
-        {
+        {//update UI
             message: interval,
             interval: value
         }
