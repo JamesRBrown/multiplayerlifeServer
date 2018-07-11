@@ -80,7 +80,9 @@ How do we handle race conditions?
 
 
 Outline of Messaging System:
+
     To server messages:
+
         {
             message: move,
             move: {
@@ -103,6 +105,7 @@ Outline of Messaging System:
         }
 
     To client messages:
+
         {
             message: initialize,
             initialize: lifeObj

@@ -1,6 +1,6 @@
 module.exports = function(model){
     
-    function newObj(obj){
+    function copyObj(obj){
         return JSON.parse(JSON.stringify(obj));
     };
     
@@ -81,8 +81,10 @@ module.exports = function(model){
                     north: find.wrap(endCoordinates, find.north(coordinates)),
                     northEast: find.wrap(endCoordinates, find.northEast(coordinates)),
                     east: find.wrap(endCoordinates, find.east(coordinates)),
+                    southEast: find.wrap(endCoordinates, find.southEast(coordinates)),
                     south: find.wrap(endCoordinates, find.south(coordinates)),
                     southWest: find.wrap(endCoordinates, find.southWest(coordinates)),
+                    west: find.wrap(endCoordinates, find.west(coordinates)),
                     northWest: find.wrap(endCoordinates, find.northWest(coordinates))
                 };
             }
@@ -130,12 +132,12 @@ module.exports = function(model){
         }
         
         
-        var cell = newObj(board[coordinates.x][coordinates.y]);
+        var cell = copyObj(board[coordinates.x][coordinates.y]);
         var neighbors = find.neighborCoordinates(board, coordinates);
         var cv = caculatedValues();
         var livingNeighbors = cv.living;
         var newLifeColor = cv.color;
-        var deadColor = newObj(model.deadColor);
+        var deadColor = copyObj(model.deadColor);
         
         if(cell.alive){
             if(livingNeighbors < 1 || livingNeighbors > 4){
@@ -155,9 +157,9 @@ module.exports = function(model){
         return cell;
     }
     
-    function nextGeneration(currentModel){
-        var newModel = JSON.parse(JSON.stringify(currentModel));
-        var updates = [];
+    function getNextGeneration(currentModel, outgoingUpdates){
+        var newModel = copyObj(currentModel);
+        var updates = copyObj(outgoingUpdates) || [];
         
         var xLength = currentModel.board.length,
             yLength = currentModel.board[0].length,
@@ -169,7 +171,10 @@ module.exports = function(model){
                 newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi});
                 
                 if(newModel.board[xi][yi].alive !== currentModel.board[xi][yi].alive){
-                    //update.push(<update>)
+                    updates.push({
+                        coordinate: {x: xi, y: yi},
+                        color: newModel.board[xi][yi].color
+                    });
                 }
             }
         }
