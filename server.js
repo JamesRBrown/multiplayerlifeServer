@@ -1,16 +1,42 @@
 (function(){
 
-    var model = require('./lifeModelFactory.js').get({
-                    xSize: 16,
-                    ySize: 16,
-                    cell: {
-                       color: {
-                             r: 25,
-                             g: 25,
-                             b: 25
-                       }
-                   }
-                });
+    var model;
+    
+    (function(){
+        model = newModel();
+    })();
+    
+    function newModel(o){
+        o = o || {
+                        xSize: 32,
+                        ySize: 32
+                    };
+        o.cell = o.cell || {
+                           color: {
+                                 r: 126,
+                                 g: 126,
+                                 b: 126
+                           }
+                       };
+        var model = require('./lifeModelFactory.js').get(o);
+
+        model.boardColor = {  
+            r:255,
+            g:255,
+            b:255
+        };
+        model.deadColor = {  
+            r:215,
+            g:215,
+            b:215
+        };
+        model.userColor = {  
+            r:0,
+            g:255,
+            b:0
+        };
+        return model;
+    }
     
     var life = require('./lifeLogic.js');
     var log = require('../libs/logging.js');
@@ -131,6 +157,13 @@
             broadcast(JSON.stringify(o));
         }
         if(o.message === 'model'){
+            send.model(model);
+        }
+        if(o.message === 'size'){
+            model = newModel({
+                xSize: o.size.match(/(\d*)x(\d*)/)[1],
+                ySize: o.size.match(/(\d*)x(\d*)/)[2]
+            });
             send.model(model);
         }
         

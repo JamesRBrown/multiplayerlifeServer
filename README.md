@@ -96,6 +96,10 @@ Outline of Messaging System:
             message: nextTick
         }
 
+        {//request for full model
+            message: model
+        }
+
         {//start game at set interval rate
             message: play
         }
@@ -109,11 +113,24 @@ Outline of Messaging System:
             interval: value
         }
 
+        {//clear board
+            message: clear
+        }
+
+        {//reset game
+            message: reset
+        }
+
+        {//update UI
+            message: size,
+            size: value
+        }
+
     To client messages:
 
         {//full model push
-            message: initialize,
-            initialize: lifeObj
+            message: model,
+            model: lifeObj
         }
 
         {//make updates to client model
@@ -143,6 +160,14 @@ Outline of Messaging System:
         {//update UI
             message: interval,
             interval: value
+        }
+        {//update UI
+            message: generation,
+            generation: value
+        }
+        {//update UI
+            message: size,
+            size: value
         }
 
 

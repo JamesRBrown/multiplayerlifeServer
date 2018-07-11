@@ -119,6 +119,7 @@ module.exports = (function(){
                 userID: 0,
                 userColor: colorFactory(),
                 boardColor: colorFactory(), //153, 153, 153
+                defaultColor: colorFactory(),   //126, 126, 126
                 deadColor: colorFactory(),   //126, 126, 126
                 colorOptions: colorOptions()
             };
