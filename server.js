@@ -1,6 +1,6 @@
 (function(){
 
-    var life = require('./lifeModelFactory.js').get({
+    var model = require('./lifeModelFactory.js').get({
                     xSize: 16,
                     ySize: 16,
                     cell: {
@@ -11,6 +11,9 @@
                        }
                    }
                 });
+    
+    var life = require('./lifeLogic.js');
+    
     var WebSocket = require('ws'),
     wss = new WebSocket.Server({port: 3000});
 

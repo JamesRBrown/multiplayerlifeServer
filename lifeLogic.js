@@ -1,4 +1,4 @@
-module.exports = function(model){
+module.exports = (function(){
     
     function copyObj(obj){
         return JSON.parse(JSON.stringify(obj));
@@ -91,7 +91,22 @@ module.exports = function(model){
         };
         
     
-    
+    function applyUpdate(currentModel, outgoingUpdates, update){
+        var newModel = copyObj(currentModel);
+        var updates = copyObj(outgoingUpdates) || [];
+
+        if(update.alive){
+            newModel.board[update.coordinate.x][update.coordinate.y].alive = true;
+            newModel.board[update.coordinate.x][update.coordinate.y].color = copyObj(u.color);
+        }else{
+            newModel.board[update.coordinate.x][update.coordinate.y].alive = false;            
+            newModel.board[update.coordinate.x][update.coordinate.y].color = copyObj(currentModel.deadColor);
+        }
+        
+        updates.push(copyObj(update));
+
+        return {model: newModel, updates: updates};
+    };
     
     
     function calcCell(model, coordinates){
@@ -173,11 +188,18 @@ module.exports = function(model){
                 if(newModel.board[xi][yi].alive !== currentModel.board[xi][yi].alive){
                     updates.push({
                         coordinate: {x: xi, y: yi},
-                        color: newModel.board[xi][yi].color
+                        color: newModel.board[xi][yi].color,
+                        alive: newModel.board[xi][yi].alive
                     });
                 }
             }
         }
         
+        return {model: newModel, updates: updates};
     };
-};
+    
+    return {
+        applyUpdate: applyUpdate,
+        getNextGeneration: getNextGeneration
+    };
+})();

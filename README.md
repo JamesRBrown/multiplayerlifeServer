@@ -86,8 +86,9 @@ Outline of Messaging System:
         {
             message: move,
             move: {
-                userID: 0,
-                coordinate: {x: 0, y: 0}
+                coordinate: {x: 0, y: 0},
+                color: {r: 0, g: 0, b:0},
+                alive: true
             }
         }
 
@@ -115,12 +116,14 @@ Outline of Messaging System:
             message: updates
             updates: [
                 0: {
-                    coordinate: {x: 0, y: 0}
-                    color: {r: 0, g: 0, b:0}
+                    coordinate: {x: 0, y: 0},
+                    color: {r: 0, g: 0, b:0},
+                    alive: true
                 },
                 1: {
-                    coordinate: {x: 1, y: 1}
-                    color: {r: 0, g: 0, b:0}
+                    coordinate: {x: 1, y: 1},
+                    color: {r: 0, g: 0, b:0},
+                    alive: false
                 }
             ]
         }
