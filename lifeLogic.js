@@ -4,6 +4,18 @@ module.exports = (function(){
         return JSON.parse(JSON.stringify(obj));
     };
     
+    var log = require('../libs/logging.js');
+    
+    //*
+    log.config({ 
+        console: true,          //turn on/off console logging
+        //path: true,           //prepend file path
+        //file: true,             //prepend filename
+        line: true,             //prepend line number
+        //func: true,             //prepend function name
+        app: "Life Server"    //set app name, used for email function
+    });//*/ 
+    
     var find = {
             north: function(coordinate){
                 var result = {x: coordinate.x, y: coordinate.y};
@@ -55,8 +67,8 @@ module.exports = (function(){
                     result = {x: test.x, y: test.y};
 
                 function testLimit(end, value){
-                    if(value > end) value = 0; //test over
-                    if(value < 0) value = end; //test under
+                    if(value >= end) value = 0;      //test over
+                    if(value < 0) value = end - 1;  //test under
 
                     return value;
                 }
@@ -71,7 +83,7 @@ module.exports = (function(){
                     x: board.length,
                     y: board[0].length
                 };
-
+                
                 return {
                     north: find.wrap(endCoordinates, find.north(coordinates)),
                     northEast: find.wrap(endCoordinates, find.northEast(coordinates)),
@@ -89,6 +101,9 @@ module.exports = (function(){
     function applyUpdate(currentModel, update){
         var newModel = copyObj(currentModel);
         var u = copyObj(update) || [];
+        
+        log.log(update);
+        log.log(u);
 
         if(u.alive){
             newModel.board[u.coordinate.x][u.coordinate.y].alive = true;
@@ -132,11 +147,18 @@ module.exports = (function(){
             var living = 0;
             var colors = [];
             var color = {r:0, g:0, b:0};
-            
+            //log.log(neighbors);
             for (var n in neighbors){
-                if(board[n.x][n.y].alive){
+                /*
+                log.log(n);
+                log.log(neighbors[n]);
+                console.log(neighbors[n].x);
+                log.log(neighbors[n].y);
+                console.log(board[0][0]);
+                //log.log(board);//*/
+                if(board[neighbors[n].x][neighbors[n].y].alive){
                     living++;
-                    colors.push(board[n.x][n.y].color);
+                    colors.push(board[neighbors[n].x][neighbors[n].y].color);
                 }
             }
             
@@ -190,6 +212,7 @@ module.exports = (function(){
         
         for(; xi < xLength; xi++){
             for(; yi < yLength; yi++){
+                //log.log(`x: ${xi}, y: ${yi}`);
                 newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi});
                 
                 if(newModel.board[xi][yi].alive !== currentModel.board[xi][yi].alive){
@@ -201,7 +224,7 @@ module.exports = (function(){
                 }
             }
         }
-        
+        newModel.generation++;
         return {model: newModel, updates: updates};
     };
     

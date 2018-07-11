@@ -13,6 +13,17 @@
                 });
     
     var life = require('./lifeLogic.js');
+    var log = require('../libs/logging.js');
+    
+    //*
+    log.config({ 
+        console: true,          //turn on/off console logging
+        //path: true,           //prepend file path
+        file: true,             //prepend filename
+        line: true,             //prepend line number
+        //func: true,             //prepend function name
+        app: "Life Server"    //set app name, used for email function
+    });//*/ 
     
     var rxUpdates = [];
     
@@ -25,7 +36,9 @@
     var txMessageCount = 0;
 
     var updateRate = 2000;
-    var play = true;
+    var play = false;
+    
+    log.log("Server Started...");
     
     var clients = [];
 
@@ -100,20 +113,25 @@
         }
         if(o.message === 'update'){
             rxUpdates.push(o.update);
+            log.log(rxUpdates);
             if(!play){//if not playing, update model immediately
-                var updates = rxUpdates;
+                var updates = life.copyObj(rxUpdates);
+                log.log(updates);
                 rxUpdates = [];
                 model = sendUpdatedModel(model, updates);
             }
         }
         if(o.message === 'nextTick'){
-            var updates = rxUpdates;
+            var updates = life.copyObj(rxUpdates);
             rxUpdates = [];
             model = nextTick(model, updates);
         }
         if(o.message === 'interval'){
             updateRate = o.interval;
             broadcast(JSON.stringify(o));
+        }
+        if(o.message === 'model'){
+            send.model(model);
         }
         
     }
@@ -158,10 +176,18 @@
 
             broadcast(JSON.stringify(send));
         },
-        initialize: function(model){
+        model: function(model){
             var send = {
-                message: 'initialize',
-                initialize: model
+                message: 'model',
+                model: model
+            };
+
+            broadcast(JSON.stringify(send));
+        },
+        generation: function(model){
+            var send = {
+                message: 'generation',
+                generation: model.generation
             };
 
             broadcast(JSON.stringify(send));
@@ -179,7 +205,11 @@
             txUpdates.push(update);
         });
         
-        send.updates(txUpdates);
+        if(txUpdates && txUpdates.length){
+            send.updates(txUpdates);
+        }
+        
+        send.generation(model);
         
         return model;
     }
@@ -189,15 +219,18 @@
         model = results.model;
         var txUpdates = results.txUpdates;
         
-        send.updates(txUpdates);
+        if(txUpdates && txUpdates.length){
+            send.updates(txUpdates);
+        }
         
         return model;
     }
     
     setInterval(function(){
+        
+        //log.log("in the loop");
         if(play){
-            
-            var updates = rxUpdates;
+            var updates = life.copyObj(rxUpdates);
             rxUpdates = [];
             model = nextTick(model, updates);
             
