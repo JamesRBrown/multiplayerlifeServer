@@ -77,14 +77,14 @@ How do users get their userID?
     - Since we're going a websocket, the connectionID can be tracked with the socket.
 
 How do we handle race conditions?
-
+    
 
 Outline of Messaging System:
 
     To server messages:
 
         {
-            message: move,
+            message: update,
             move: {
                 coordinate: {x: 0, y: 0},
                 color: {r: 0, g: 0, b:0},

@@ -14,6 +14,9 @@
     
     var life = require('./lifeLogic.js');
     
+    var rxUpdates = [];
+    var txUpdates = [];
+    
     var WebSocket = require('ws'),
     wss = new WebSocket.Server({port: 3000});
 
@@ -105,8 +108,36 @@
         }
     }
     
+    function processUpdates(model, rxUpdates){
+        model = life.copyObj(model);
+        rxUpdates = life.copyObj(rxUpdates);
+        
+        var result = life.processUpdates(model, rxUpdates);
+        
+        return {model: result.model, txUpdates: result.updates};
+    }
+    
+    function runGeneration(model, rxUpdates){
+        model = life.copyObj(model);
+        rxUpdates = life.copyObj(rxUpdates);
+        
+        var result = life.getNextGeneration(model);
+        
+        return {model: result.model, txUpdates: result.updates};
+    }
+    
+    function sendUpdate(txUpdates){
+        var send = {
+            message: 'updates',
+            updates: txUpdates
+        };
+        
+        broadcast(JSON.stringify(send));
+    }
+    
     setInterval(function(){
         if(play){
+            
             
             broadcast(JSON.stringify(life));
             

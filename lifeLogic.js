@@ -55,18 +55,13 @@ module.exports = (function(){
                     result = {x: test.x, y: test.y};
 
                 function testLimit(end, value){
-                    //test over
-                    if(value > end) value = 0;
-
-                    //test under
-                    if(value < 0) value = end;
+                    if(value > end) value = 0; //test over
+                    if(value < 0) value = end; //test under
 
                     return value;
                 }
 
-                //test x
                 result.x = testLimit(end.x, test.x);
-                //test y
                 result.y = testLimit(end.y, test.y);
 
                 return result;
@@ -91,23 +86,35 @@ module.exports = (function(){
         };
         
     
-    function applyUpdate(currentModel, outgoingUpdates, update){
+    function applyUpdate(currentModel, update){
         var newModel = copyObj(currentModel);
-        var updates = copyObj(outgoingUpdates) || [];
+        var u = copyObj(update) || [];
 
-        if(update.alive){
-            newModel.board[update.coordinate.x][update.coordinate.y].alive = true;
-            newModel.board[update.coordinate.x][update.coordinate.y].color = copyObj(u.color);
+        if(u.alive){
+            newModel.board[u.coordinate.x][u.coordinate.y].alive = true;
+            newModel.board[u.coordinate.x][u.coordinate.y].color = copyObj(u.color);
         }else{
-            newModel.board[update.coordinate.x][update.coordinate.y].alive = false;            
-            newModel.board[update.coordinate.x][update.coordinate.y].color = copyObj(currentModel.deadColor);
+            newModel.board[u.coordinate.x][u.coordinate.y].alive = false;            
+            u.color = copyObj(currentModel.deadColor);
+            newModel.board[u.coordinate.x][u.coordinate.y].color = u.color;
         }
         
-        updates.push(copyObj(update));
 
-        return {model: newModel, updates: updates};
+        return {model: newModel, update: u};
     };
     
+    function processUpdates(currentModel, updates){
+        var newModel = copyObj(currentModel);
+        var newUpdates = copyObj(updates) || [];
+
+        newUpdates.forEach(function(update){
+            var result = applyUpdate(newModel, update);
+            newModel = result.model;
+            update = result.update;
+        });
+
+        return {model: newModel, updates: newUpdates};
+    }
     
     function calcCell(model, coordinates){
         /*
@@ -172,9 +179,9 @@ module.exports = (function(){
         return cell;
     }
     
-    function getNextGeneration(currentModel, outgoingUpdates){
+    function getNextGeneration(currentModel){
         var newModel = copyObj(currentModel);
-        var updates = copyObj(outgoingUpdates) || [];
+        var updates =  [];
         
         var xLength = currentModel.board.length,
             yLength = currentModel.board[0].length,
@@ -199,7 +206,8 @@ module.exports = (function(){
     };
     
     return {
-        applyUpdate: applyUpdate,
+        copyObj: copyObj,
+        processUpdates: processUpdates,
         getNextGeneration: getNextGeneration
     };
 })();
