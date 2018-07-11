@@ -15,7 +15,6 @@
     var life = require('./lifeLogic.js');
     
     var rxUpdates = [];
-    var txUpdates = [];
     
     var WebSocket = require('ws'),
     wss = new WebSocket.Server({port: 3000});
@@ -85,11 +84,36 @@
     function rxMessagesProcessor(connection){
         var message = connection.rxMessages.pop();
         
-        if(message === 'play'){
+        var o = JSON.parse(message);
+        
+        if(o.message === 'play'){
             play = true;
+            broadcast(JSON.stringify({
+                message: "play"
+            }));
         }
-        if(message === 'pause'){
+        if(o.message === 'pause'){
             play = false;
+            broadcast(JSON.stringify({
+                message: "pause"
+            }));
+        }
+        if(o.message === 'update'){
+            rxUpdates.push(o.update);
+            if(!play){//if not playing, update model immediately
+                var updates = rxUpdates;
+                rxUpdates = [];
+                model = sendUpdatedModel(model, updates);
+            }
+        }
+        if(o.message === 'nextTick'){
+            var updates = rxUpdates;
+            rxUpdates = [];
+            model = nextTick(model, updates);
+        }
+        if(o.message === 'interval'){
+            updateRate = o.interval;
+            broadcast(JSON.stringify(o));
         }
         
     }
@@ -117,9 +141,8 @@
         return {model: result.model, txUpdates: result.updates};
     }
     
-    function runGeneration(model, rxUpdates){
+    function runGeneration(model){
         model = life.copyObj(model);
-        rxUpdates = life.copyObj(rxUpdates);
         
         var result = life.getNextGeneration(model);
         
@@ -145,13 +168,38 @@
         }
     };
     
+    function nextTick(model, rxUpdates){
+        var results = processUpdates(model, rxUpdates);
+        model = results.model;
+        var txUpdates = results.txUpdates;
+        
+        results = runGeneration(model);
+        model = results.model;
+        results.txUpdates.forEach(function(update){
+            txUpdates.push(update);
+        });
+        
+        send.updates(txUpdates);
+        
+        return model;
+    }
     
+    function sendUpdatedModel(model, rxUpdates){
+        var results = processUpdates(model, rxUpdates);
+        model = results.model;
+        var txUpdates = results.txUpdates;
+        
+        send.updates(txUpdates);
+        
+        return model;
+    }
     
     setInterval(function(){
         if(play){
             
-            
-            broadcast(JSON.stringify(life));
+            var updates = rxUpdates;
+            rxUpdates = [];
+            model = nextTick(model, updates);
             
         }
     }, updateRate);
