@@ -4,6 +4,7 @@
     
     (function(){
         model = newModel();
+        runLoop();
     })();
     
     function newModel(o){
@@ -61,7 +62,7 @@
     var rxMessageCount = 0;
     var txMessageCount = 0;
 
-    var updateRate = 2000;
+    var interval = 4000;
     var play = false;
     
     log.log("Server Started...");
@@ -153,11 +154,15 @@
             model = nextTick(model, updates);
         }
         if(o.message === 'interval'){
-            updateRate = o.interval;
-            broadcast(JSON.stringify(o));
+            interval = o.interval;
+            console.log(o.interval);
+            console.log(interval);
+            send.interval(interval);
         }
         if(o.message === 'model'){
             send.model(model);
+            send.interval(interval);
+            
         }
         if(o.message === 'size'){
             model = newModel({
@@ -165,6 +170,7 @@
                 ySize: o.size.match(/(\d*)x(\d*)/)[2]
             });
             send.model(model);
+            send.interval(interval);
         }
         
     }
@@ -224,6 +230,18 @@
             };
 
             broadcast(JSON.stringify(send));
+        },
+        interval: function(interval){
+            console.log(interval);
+            var send = {
+                message: 'interval',
+                interval: interval
+            };
+
+            broadcast(JSON.stringify(send));
+        },
+        refresh: function(interval){
+            
         }
     };
     
@@ -259,8 +277,8 @@
         return model;
     }
     
-    setInterval(function(){
-        
+    
+    function runLoop(){
         //log.log("in the loop");
         if(play){
             var updates = life.copyObj(rxUpdates);
@@ -268,6 +286,10 @@
             model = nextTick(model, updates);
             
         }
-    }, updateRate);
+        
+        setTimeout(runLoop, interval);
+    }
+    
+    
     
 })();

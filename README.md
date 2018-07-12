@@ -117,11 +117,7 @@ Outline of Messaging System:
             message: clear
         }
 
-        {//reset game
-            message: reset
-        }
-
-        {//update UI
+        {//change board size and update clients
             message: size,
             size: value
         }
