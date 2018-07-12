@@ -1,9 +1,5 @@
 module.exports = (function(){
     
-    function copyObj(obj){
-        return JSON.parse(JSON.stringify(obj));
-    };
-    
     var log = require('../libs/logging.js');
     
     //*
@@ -15,6 +11,14 @@ module.exports = (function(){
         //func: true,             //prepend function name
         app: "Life Server"    //set app name, used for email function
     });//*/ 
+    
+    function copyObj(obj){
+        return JSON.parse(JSON.stringify(obj));
+    };
+    
+    
+    
+    
     
     var find = {
             north: function(coordinate){
@@ -236,7 +240,7 @@ module.exports = (function(){
     };
     
     function getFastNextGeneration(currentModel){
-        var newModel = copyObj(currentModel);//I think I'm take the performance hit here.
+        var newModel = copyObj(currentModel);//TODO: needs to go
         var updates =  [];
         var reprojection = {}; //we use a hash to dedupe
         

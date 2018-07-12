@@ -1,45 +1,4 @@
 (function(){
-
-    var model;
-    
-    (function(){
-        model = newModel();
-        runLoop();
-    })();
-    
-    function newModel(o){
-        o = o || {
-                        xSize: 16,
-                        ySize: 16
-                    };
-        o.cell = o.cell || {
-                           color: {
-                                 r: 255,
-                                 g: 255,
-                                 b: 255
-                           }
-                       };
-        var model = require('./lifeModelFactory.js').get(o);
-
-        model.boardColor = {  
-            r:255,
-            g:255,
-            b:255
-        };
-        model.deadColor = {  
-            r:215,
-            g:215,
-            b:215
-        };
-        model.userColor = {  
-            r:0,
-            g:255,
-            b:0
-        };
-        
-        return model;
-    }
-    
     var life = require('./lifeLogic.js');
     var log = require('../libs/logging.js');
     
@@ -145,7 +104,8 @@
             var updates = life.copyObj(rxUpdates);
             log.log(updates);
             rxUpdates = [];
-            model = sendUpdatedModel(model, updates);
+            life.state.current(models)
+            sendUpdatedModel(models, updates);
         }
         if(o.message === 'nextTick'){
             var updates = life.copyObj(rxUpdates);
@@ -198,7 +158,7 @@
     }
     
     function runGeneration(model){ 
-        model = life.copyObj(model);
+        model = life.copyObj(model);//TODO: needs to go
         
         var result = life.getFastNextGeneration(model);
         
@@ -264,16 +224,13 @@
         return model;
     }
     
-    function sendUpdatedModel(model, rxUpdates){
-        var results = processUpdates(model, rxUpdates);
-        model = results.model;
+    function sendUpdatedModel(models, rxUpdates){
+        var results = processUpdates(models, rxUpdates);
         var txUpdates = results.txUpdates;
         
         if(txUpdates && txUpdates.length){
             send.updates(txUpdates);
         }
-        
-        return model;
     }
     
     

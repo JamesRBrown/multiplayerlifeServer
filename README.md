@@ -77,7 +77,11 @@ How do users get their userID?
     - Since we're going a websocket, the connectionID can be tracked with the socket.
 
 How do we handle race conditions?
+
+How do we optimize performance?
     
+    - Work with deltas for all part of the pipeline: display, processing, and messaging.
+    - Eliminate costly actions which scale linearly with the problem domain, in other words, don't operate over empty space.
 
 Outline of Messaging System:
 

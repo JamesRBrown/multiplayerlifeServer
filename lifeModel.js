@@ -1,5 +1,5 @@
 module.exports = (function(){
-    var turnFactory = function(o){
+    var modelFactory = function(o){
         o = o || {};
         o.callback = o.callback || function(){ console.log("No callback provided!");};
         o.xSize = o.xSize || 0;
@@ -7,7 +7,7 @@ module.exports = (function(){
         o.cell = o.cell || {};
 
         o.cell.alive = false;
-        o.cell.updated = false;
+        //o.cell.updated = false;
         o.cell.color = o.cell.color || colorFactory();
 
         function colorFactory(){
@@ -53,8 +53,6 @@ module.exports = (function(){
             };
 
         };
-
-
 
         function boardFactory(o){
             o = o || {};
@@ -111,7 +109,7 @@ module.exports = (function(){
 
         var b = board.get();
 
-        function getTurn(){
+        function getModel(){
             return {
                 generation: 0,
                 gameID: 0,
@@ -128,13 +126,13 @@ module.exports = (function(){
 
         return {
             get: function(){
-                return JSON.parse(JSON.stringify(getTurn()));
+                return JSON.parse(JSON.stringify(getModel()));
             }
         };
 
     };
 
-    function getTurn(o){
+    function getModel(o){
         o = o || {
             xSize: 16,
             ySize: 16,
@@ -147,12 +145,69 @@ module.exports = (function(){
            }
         };
 
-        var tf = turnFactory(o);
-        var t = tf.get();
-        return t;    
+        var mf = modelFactory(o);
+        var m = mf.get();
+        return m;    
+    }
+    
+    function controls (){
+        var models;
+    
+        (function(){
+            models = newModels();
+            runLoop();
+        })();
+
+        function newModels(o){
+            o = o || {
+                xSize: 16,
+                ySize: 16
+            };
+            o.cell = o.cell || {
+                color: {
+                    r: 255,
+                    g: 255,
+                    b: 255
+                }
+            };
+            var model = getModel.get(o);
+
+            model.boardColor = {  
+                r:255,
+                g:255,
+                b:255
+            };
+            model.deadColor = {  
+                r:215,
+                g:215,
+                b:215
+            };
+            model.userColor = {  
+                r:0,
+                g:255,
+                b:0
+            };
+
+            //we do this to have a roting set of models 
+            //so we don't have to keep accuring the copy penalty 
+            var models = [];
+            models.push(model);
+            models.push(copyObj(model)); //OK, one time cost
+            models.push(copyObj(model)); //OK, one time cost
+
+
+            return models;
+        }
+
+
+        
+        return {
+            
+        };
     }
     
     return {
-        get: getTurn
+        current: {},
+        new: {}
     };
 })();
