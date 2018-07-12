@@ -106,6 +106,10 @@ module.exports = (function(){
         log.log(u);
 
         if(u.alive){
+            newModel.livingCells.push({
+                    x:u.coordinate.x,
+                    y:u.coordinate.y
+            });
             newModel.board[u.coordinate.x][u.coordinate.y].alive = true;
             newModel.board[u.coordinate.x][u.coordinate.y].color = copyObj(u.color);
         }else{
@@ -131,7 +135,9 @@ module.exports = (function(){
         return {model: newModel, updates: newUpdates};
     }
     
-    function calcCell(model, coordinates){ 
+    function calcCell(model, coordinates, reprojection){ 
+        console.log('reprojection 1:');
+        console.log(reprojection);
         /*
         For a space that is 'populated':
             Each cell with one or no neighbors dies, as if by solitude.
@@ -141,6 +147,9 @@ module.exports = (function(){
             Each cell with three neighbors becomes populated.
         */
         var board = model.board;
+        reprojection = reprojection || {};
+        console.log('reprojection 2:');
+        console.log(reprojection);
         
         function caculatedValues(){
             
@@ -155,10 +164,12 @@ module.exports = (function(){
                 console.log(neighbors[n].x);
                 log.log(neighbors[n].y);
                 console.log(board[0][0]);
-                //log.log(board);//*/
+                log.log(board[neighbors[n].x][neighbors[n].y]);//*/
                 if(board[neighbors[n].x][neighbors[n].y].alive){
                     living++;
                     colors.push(board[neighbors[n].x][neighbors[n].y].color);
+                }else{
+                    reprojection[`${neighbors[n].x},${neighbors[n].y}`] = true;
                 }
             }
             
@@ -197,8 +208,9 @@ module.exports = (function(){
                 cell.color = newLifeColor;
             }
         }
-       
-        return cell;
+        console.log('reprojection 3:');
+        console.log(reprojection);
+        return {cell:cell, reprojection: reprojection};
     }
     
     function getNextGeneration(currentModel){
@@ -213,7 +225,7 @@ module.exports = (function(){
         for(xi = 0; xi < xLength; xi++){
             for(yi = 0; yi < yLength; yi++){
                 //log.log(`x: ${xi}, y: ${yi}`);
-                newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi});
+                newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi}).cell;
                 
                 if(newModel.board[xi][yi].alive !== currentModel.board[xi][yi].alive){
                     updates.push({
@@ -228,9 +240,54 @@ module.exports = (function(){
         return {model: newModel, updates: updates};
     };
     
+    function getFastNextGeneration(currentModel){
+        var newModel = copyObj(currentModel);
+        var updates =  [];
+        var reprojection = {}; //we use a hash to dedupe
+        
+        newModel.livingCells = [];
+        
+        //process living cells
+        currentModel.livingCells.forEach(function(coordinate){
+            log.log(coordinate);
+            console.log('reprojection 0:');
+            console.log(reprojection);
+            var result = calcCell(currentModel, coordinate, reprojection);
+            console.log('reprojection 0.1:');
+            console.log(reprojection);
+            newModel.board[coordinate.x][coordinate.y] = result.cell;
+            if(result.cell.alive){
+                newModel.livingCells.push(coordinate);
+            }
+            reprojection = result.reprojection || reprojection;
+        });
+        log.log("finished living");
+        
+        //process dead neighbors
+        var tempArr = [];
+        log.log(reprojection);
+        for(var coordinate in reprojection){
+            tempArr = coordinate.match(/(\d+),(\d+)/);
+            
+            let cellCoordinate = {x: parseInt(tempArr[1]), y: parseInt(tempArr[2])};
+            
+            var result = calcCell(currentModel, cellCoordinate);
+            
+            newModel.board[cellCoordinate.x][cellCoordinate.y] = result.cell;
+            if(result.cell.alive){
+                newModel.livingCells.push(cellCoordinate);
+            }
+        }
+        
+        newModel.generation++;
+        return {model: newModel, updates: updates};
+    };
+    
+    
     return {
         copyObj: copyObj,
         processUpdates: processUpdates,
-        getNextGeneration: getNextGeneration
+        getNextGeneration: getNextGeneration,
+        getFastNextGeneration: getFastNextGeneration
     };
 })();

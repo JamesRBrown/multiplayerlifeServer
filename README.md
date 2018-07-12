@@ -126,7 +126,7 @@ Outline of Messaging System:
 
         {//full model push
             message: model,
-            model: lifeObj
+            model: model
         }
 
         {//make updates to client model

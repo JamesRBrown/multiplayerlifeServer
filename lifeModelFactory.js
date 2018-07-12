@@ -116,6 +116,7 @@ module.exports = (function(){
                 generation: 0,
                 gameID: 0,
                 board: b,
+                livingCells: [],
                 userID: 0,
                 userColor: colorFactory(),
                 boardColor: colorFactory(), //153, 153, 153

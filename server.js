@@ -201,7 +201,7 @@
     function runGeneration(model){ 
         model = life.copyObj(model);
         
-        var result = life.getNextGeneration(model);
+        var result = life.getFastNextGeneration(model);
         
         return {model: result.model, txUpdates: result.updates};
     }
