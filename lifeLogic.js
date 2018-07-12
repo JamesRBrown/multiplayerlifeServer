@@ -12,12 +12,6 @@ module.exports = (function(){
         app: "Life Server"    //set app name, used for email function
     });//*/ 
     
-    function copyObj(obj){
-        return JSON.parse(JSON.stringify(obj));
-    };
-    
-    
-    
     
     
     var find = {

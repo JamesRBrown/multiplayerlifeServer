@@ -12,6 +12,7 @@
         app: "Life Server"    //set app name, used for email function
     });//*/ 
     
+    
     var rxUpdates = [];
     
     var WebSocket = require('ws'),
@@ -29,6 +30,11 @@
     
     var clients = [];
 
+    (function(){
+        runLoop();
+        
+    })();
+    
     //*
     wss.on('connection', function (ws) {
         

@@ -83,6 +83,29 @@ How do we optimize performance?
     - Work with deltas for all part of the pipeline: display, processing, and messaging.
     - Eliminate costly actions which scale linearly with the problem domain, in other words, don't operate over empty space.
 
+What operations must be made on model data?
+
+    - Must be able to inspect board and cells on board.
+    - Must be able to update cell data.
+    - Must be able to dynamically create new board of any size.
+    - Must be able to be able to request state snapshot to send out.
+    - Must be able to increment generation.
+
+How do we manage model data?
+
+    - Duplicating the model every generation is expensive, especially for larger board sizes.
+    - Instead of duplication, a three model rotation will be used.
+    - Model object to manage rotation.
+    - Rotation status is tracked using the generation ID.  
+    - When updating the "new" model, both the previous model, and one of the two current models is updated. 
+    - With this approach, two new models are created, there are two current models for the next tick to work with.
+    - Updates should only be made by the model, no direct data manipulation is allowed.
+
+How do we maintain data consistency with this rotating three model design?
+
+    - We maintain a journal of changes made to the model.
+    - After the generational rotation is made we apply the journal to the previous generation.
+
 Outline of Messaging System:
 
     To server messages:
