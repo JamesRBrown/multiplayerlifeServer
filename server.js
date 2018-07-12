@@ -36,6 +36,7 @@
             g:255,
             b:0
         };
+        
         return model;
     }
     
@@ -141,12 +142,10 @@
         if(o.message === 'update'){
             rxUpdates.push(o.update);
             log.log(rxUpdates);
-            if(!play){//if not playing, update model immediately
-                var updates = life.copyObj(rxUpdates);
-                log.log(updates);
-                rxUpdates = [];
-                model = sendUpdatedModel(model, updates);
-            }
+            var updates = life.copyObj(rxUpdates);
+            log.log(updates);
+            rxUpdates = [];
+            model = sendUpdatedModel(model, updates);
         }
         if(o.message === 'nextTick'){
             var updates = life.copyObj(rxUpdates);

@@ -236,7 +236,7 @@ module.exports = (function(){
     };
     
     function getFastNextGeneration(currentModel){
-        var newModel = copyObj(currentModel);
+        var newModel = copyObj(currentModel);//I think I'm take the performance hit here.
         var updates =  [];
         var reprojection = {}; //we use a hash to dedupe
         
