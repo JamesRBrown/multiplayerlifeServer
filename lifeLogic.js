@@ -131,7 +131,7 @@ module.exports = (function(){
         return {model: newModel, updates: newUpdates};
     }
     
-    function calcCell(model, coordinates){
+    function calcCell(model, coordinates){ 
         /*
         For a space that is 'populated':
             Each cell with one or no neighbors dies, as if by solitude.
@@ -184,7 +184,7 @@ module.exports = (function(){
         var deadColor = copyObj(model.deadColor);
         
         if(cell.alive){
-            if(livingNeighbors < 1 || livingNeighbors > 4){
+            if(livingNeighbors <= 1 || livingNeighbors >= 4){
                 cell.alive = false;
                 cell.color = deadColor;
             }
@@ -210,8 +210,8 @@ module.exports = (function(){
             xi = 0, 
             yi = 0;
         
-        for(; xi < xLength; xi++){
-            for(; yi < yLength; yi++){
+        for(xi = 0; xi < xLength; xi++){
+            for(yi = 0; yi < yLength; yi++){
                 //log.log(`x: ${xi}, y: ${yi}`);
                 newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi});
                 

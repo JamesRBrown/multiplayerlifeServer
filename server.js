@@ -9,14 +9,14 @@
     
     function newModel(o){
         o = o || {
-                        xSize: 32,
-                        ySize: 32
+                        xSize: 16,
+                        ySize: 16
                     };
         o.cell = o.cell || {
                            color: {
-                                 r: 126,
-                                 g: 126,
-                                 b: 126
+                                 r: 255,
+                                 g: 255,
+                                 b: 255
                            }
                        };
         var model = require('./lifeModelFactory.js').get(o);
@@ -189,7 +189,7 @@
         }
     }
     
-    function processUpdates(model, rxUpdates){
+    function processUpdates(model, rxUpdates){ 
         model = life.copyObj(model);
         rxUpdates = life.copyObj(rxUpdates);
         
@@ -198,7 +198,7 @@
         return {model: result.model, txUpdates: result.updates};
     }
     
-    function runGeneration(model){
+    function runGeneration(model){ 
         model = life.copyObj(model);
         
         var result = life.getNextGeneration(model);

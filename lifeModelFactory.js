@@ -8,7 +8,7 @@ module.exports = (function(){
 
         o.cell.alive = false;
         o.cell.updated = false;
-        o.cell.color = colorFactory();
+        o.cell.color = o.cell.color || colorFactory();
 
         function colorFactory(){
             return {
@@ -19,7 +19,7 @@ module.exports = (function(){
         }
 
         function colorOptions () {
-            return {
+            return { 
                 red: {
                     r: 255,
                     g: 0,
