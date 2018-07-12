@@ -136,8 +136,6 @@ module.exports = (function(){
     }
     
     function calcCell(model, coordinates, reprojection){ 
-        console.log('reprojection 1:');
-        console.log(reprojection);
         /*
         For a space that is 'populated':
             Each cell with one or no neighbors dies, as if by solitude.
@@ -148,8 +146,6 @@ module.exports = (function(){
         */
         var board = model.board;
         reprojection = reprojection || {};
-        console.log('reprojection 2:');
-        console.log(reprojection);
         
         function caculatedValues(){
             
@@ -208,8 +204,7 @@ module.exports = (function(){
                 cell.color = newLifeColor;
             }
         }
-        console.log('reprojection 3:');
-        console.log(reprojection);
+        
         return {cell:cell, reprojection: reprojection};
     }
     
@@ -249,23 +244,25 @@ module.exports = (function(){
         
         //process living cells
         currentModel.livingCells.forEach(function(coordinate){
-            log.log(coordinate);
-            console.log('reprojection 0:');
-            console.log(reprojection);
+            //log.log(coordinate);
             var result = calcCell(currentModel, coordinate, reprojection);
-            console.log('reprojection 0.1:');
-            console.log(reprojection);
             newModel.board[coordinate.x][coordinate.y] = result.cell;
+            if(newModel.board[coordinate.x][coordinate.y].alive !== currentModel.board[coordinate.x][coordinate.y].alive){
+                updates.push({
+                    coordinate: {x: coordinate.x, y: coordinate.y},
+                    color: newModel.board[coordinate.x][coordinate.y].color,
+                    alive: newModel.board[coordinate.x][coordinate.y].alive
+                });
+            }
             if(result.cell.alive){
                 newModel.livingCells.push(coordinate);
             }
             reprojection = result.reprojection || reprojection;
         });
-        log.log("finished living");
         
         //process dead neighbors
         var tempArr = [];
-        log.log(reprojection);
+        //log.log(reprojection);
         for(var coordinate in reprojection){
             tempArr = coordinate.match(/(\d+),(\d+)/);
             
@@ -274,6 +271,13 @@ module.exports = (function(){
             var result = calcCell(currentModel, cellCoordinate);
             
             newModel.board[cellCoordinate.x][cellCoordinate.y] = result.cell;
+            if(newModel.board[cellCoordinate.x][cellCoordinate.y].alive !== currentModel.board[cellCoordinate.x][cellCoordinate.y].alive){
+                updates.push({
+                    coordinate: {x: cellCoordinate.x, y: cellCoordinate.y},
+                    color: newModel.board[cellCoordinate.x][cellCoordinate.y].color,
+                    alive: newModel.board[cellCoordinate.x][cellCoordinate.y].alive
+                });
+            }
             if(result.cell.alive){
                 newModel.livingCells.push(cellCoordinate);
             }
