@@ -121,9 +121,9 @@ module.exports = (function(){
                 livingCells: [],
                 userID: 0,
                 userColor: colorFactory(),
-                boardColor: colorFactory(), //153, 153, 153
+                boardColor: colorFactory(),     //153, 153, 153
                 defaultColor: colorFactory(),   //126, 126, 126
-                deadColor: colorFactory(),   //126, 126, 126
+                deadColor: colorFactory(),      //126, 126, 126
                 colorOptions: colorOptions()
             };
         };
@@ -154,7 +154,7 @@ module.exports = (function(){
         return m;    
     }
     
-    function controls (){
+    var controls = (function  (){
         var currentGeneration;
         var models;             //these should not be called directly, use get
         var getModel;           //this holds the model get functions
@@ -239,7 +239,21 @@ module.exports = (function(){
         };
         
         var get = {
-            
+            boardSize: function(){
+                var x = getModel.current().board.length;
+                var y = getModel.current().board[0].length;
+                return {x:x, y:y};
+            },
+            new: {
+                cell: function(coordinate){
+                    return copyObj(getModel.next().board[coordinate.x][coordinate.y]);
+                }
+            },
+            current: {
+                cell: function(coordinate){
+                    return copyObj(getModel.current().board[coordinate.x][coordinate.y]);
+                }
+            }
         };
         
         var update = {
@@ -296,23 +310,36 @@ module.exports = (function(){
         return {
             initialize: initialize,
             getStateSnapshot: getStateSnapshot,
-            update: {},
-            get: {}
+            update: {
+                incrementGeneration: update.incrementGeneration,
+                cell: update.cell
+            },
+            get: {
+                boardSize: get.boardSize,
+                new: {
+                    cell: get.new.cell
+                },
+                current: {
+                    cell: get.current.cell
+                }
+            }
         };
-    }
+    })();//end controls
     
     return {
         initialize: controls.initialize,
         get: {
             current: {
-                
+                cell: controls.get.current.cell
             },
             new: {
-                
-            }
+                cell: controls.get.new.cell
+            },
+            boardSize: controls.get.boardSize
         },
         update: {
-            incrementGeneration: controls.incrementGeneration
+            incrementGeneration: controls.update.incrementGeneration,
+            cell: controls.update.cell
         },
         getStateSnapshot: controls.getStateSnapshot
     };
