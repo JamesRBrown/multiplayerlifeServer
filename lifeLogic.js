@@ -76,64 +76,39 @@ module.exports = (function(){
 
                 return result;
             },
-            neighborhood: function (board, coordinates){
-                var endCoordinates = {
-                    x: board.length,
-                    y: board[0].length
-                };
-                
+            neighborhood: function (boardSize, coordinates){
                 return {
-                    north: find.wrap(endCoordinates, find.north(coordinates)),
-                    northEast: find.wrap(endCoordinates, find.northEast(coordinates)),
-                    east: find.wrap(endCoordinates, find.east(coordinates)),
-                    southEast: find.wrap(endCoordinates, find.southEast(coordinates)),
-                    south: find.wrap(endCoordinates, find.south(coordinates)),
-                    southWest: find.wrap(endCoordinates, find.southWest(coordinates)),
-                    west: find.wrap(endCoordinates, find.west(coordinates)),
-                    northWest: find.wrap(endCoordinates, find.northWest(coordinates))
+                    north: find.wrap(boardSize, find.north(coordinates)),
+                    northEast: find.wrap(boardSize, find.northEast(coordinates)),
+                    east: find.wrap(boardSize, find.east(coordinates)),
+                    southEast: find.wrap(boardSize, find.southEast(coordinates)),
+                    south: find.wrap(boardSize, find.south(coordinates)),
+                    southWest: find.wrap(boardSize, find.southWest(coordinates)),
+                    west: find.wrap(boardSize, find.west(coordinates)),
+                    northWest: find.wrap(boardSize, find.northWest(coordinates))
                 };
             }
         };
         
     
-    function applyUpdate(currentModel, update){
-        var newModel = copyObj(currentModel);
-        var u = copyObj(update) || [];
-        
+    function applyUpdate(update){
         log.log(update);
-        log.log(u);
 
-        if(u.alive){
-            newModel.livingCells.push({
-                    x:u.coordinate.x,
-                    y:u.coordinate.y
-            });
-            newModel.board[u.coordinate.x][u.coordinate.y].alive = true;
-            newModel.board[u.coordinate.x][u.coordinate.y].color = copyObj(u.color);
-        }else{
-            newModel.board[u.coordinate.x][u.coordinate.y].alive = false;            
-            u.color = copyObj(currentModel.deadColor);
-            newModel.board[u.coordinate.x][u.coordinate.y].color = u.color;
-        }
+        model.update.cell(update);
         
-
-        return {model: newModel, update: u};
+        return update;
     };
     
-    function processUpdates(currentModel, updates){
-        var newModel = copyObj(currentModel);
-        var newUpdates = copyObj(updates) || [];
+    function processUpdates(updates){
 
-        newUpdates.forEach(function(update){
-            var result = applyUpdate(newModel, update);
-            newModel = result.model;
-            update = result.update;
+        updates.forEach(function(update){
+            applyUpdate(update);
         });
 
-        return {model: newModel, updates: newUpdates};
+        return updates;
     }
     
-    function calcCell(model, coordinates, reprojection){ 
+    function calcCell(coordinate){ 
         /*
         For a space that is 'populated':
             Each cell with one or no neighbors dies, as if by solitude.
@@ -142,28 +117,21 @@ module.exports = (function(){
         For a space that is 'empty' or 'unpopulated'
             Each cell with three neighbors becomes populated.
         */
-        var board = model.board;
-        reprojection = reprojection || {};
         
         function caculatedValues(){
             
             var living = 0;
             var colors = [];
             var color = {r:0, g:0, b:0};
-            //log.log(neighbors);
+            var neighborCell;
             for (var n in neighbors){
-                /*
-                log.log(n);
-                log.log(neighbors[n]);
-                console.log(neighbors[n].x);
-                log.log(neighbors[n].y);
-                console.log(board[0][0]);
-                log.log(board[neighbors[n].x][neighbors[n].y]);//*/
-                if(board[neighbors[n].x][neighbors[n].y].alive){
+                neighborCell = model.get.cell({x: neighbors[n].x, y: neighbors[n].y});
+                
+                if(neighborCell.alive){
                     living++;
-                    colors.push(board[neighbors[n].x][neighbors[n].y].color);
+                    colors.push(neighborCell.color);
                 }else{
-                    reprojection[`${neighbors[n].x},${neighbors[n].y}`] = true;
+                    model.reprojection.track({x: neighbors[n].x, y: neighbors[n].y});
                 }
             }
             
@@ -181,8 +149,8 @@ module.exports = (function(){
         }
         
         
-        var cell = copyObj(board[coordinates.x][coordinates.y]);
-        var neighbors = find.neighborhood(board, coordinates);
+        var cell = model.get.cell(coordinate);
+        var neighbors = find.neighborhood(model.get.boardSize, coordinate);
         var cv = caculatedValues();
         var livingNeighbors = cv.living;
         var newLifeColor = cv.color;
@@ -203,93 +171,49 @@ module.exports = (function(){
             }
         }
         
-        return {cell:cell, reprojection: reprojection};
+        return cell;
     }
     
-    function getNextGeneration(currentModel){
-        var newModel = copyObj(currentModel);
+    function getNextGeneration(){
         var updates =  [];
         
-        var xLength = currentModel.board.length,
-            yLength = currentModel.board[0].length,
-            xi = 0, 
-            yi = 0;
-        
-        for(xi = 0; xi < xLength; xi++){
-            for(yi = 0; yi < yLength; yi++){
-                //log.log(`x: ${xi}, y: ${yi}`);
-                newModel.board[xi][yi] = calcCell(currentModel, {x: xi, y: yi}).cell;
-                
-                if(newModel.board[xi][yi].alive !== currentModel.board[xi][yi].alive){
-                    updates.push({
-                        coordinate: {x: xi, y: yi},
-                        color: newModel.board[xi][yi].color,
-                        alive: newModel.board[xi][yi].alive
-                    });
-                }
+        function functor(cell){
+            var newCell = calcCell(cell.coordinate);
+            model.next.cell(newCell);
+            if(newCell.alive !== cell.alive){
+                updates.push(newCell);
             }
         }
-        newModel.generation++;
-        return {model: newModel, updates: updates};
-    };
-    
-    function getFastNextGeneration(currentModel){
-        var newModel = copyObj(currentModel);//TODO: needs to go
-        var updates =  [];
-        var reprojection = {}; //we use a hash to dedupe
-        
-        newModel.livingCells = [];
         
         //process living cells
-        currentModel.livingCells.forEach(function(coordinate){
-            //log.log(coordinate);
-            var result = calcCell(currentModel, coordinate, reprojection);
-            newModel.board[coordinate.x][coordinate.y] = result.cell;
-            if(newModel.board[coordinate.x][coordinate.y].alive !== currentModel.board[coordinate.x][coordinate.y].alive){
-                updates.push({
-                    coordinate: {x: coordinate.x, y: coordinate.y},
-                    color: newModel.board[coordinate.x][coordinate.y].color,
-                    alive: newModel.board[coordinate.x][coordinate.y].alive
-                });
+        var living = model.get.living(function(cell){
+                var newCell = calcCell(cell.coordinate);
+                model.next.cell(newCell);
+                if(newCell.alive !== cell.alive){
+                    updates.push(newCell);
+                }
+            });
+
+        //process dead neighbors
+        model.reprojection.process(function(coordinate){
+            var newCell = calcCell(coordinate);
+            model.next.cell(newCell);
+            
+            if(newCell.alive !== model.get.cell(coordinate).alive){
+                updates.push(newCell);
             }
-            if(result.cell.alive){
-                newModel.livingCells.push(coordinate);
-            }
-            reprojection = result.reprojection || reprojection;
         });
         
-        //process dead neighbors
-        var tempArr = [];
-        //log.log(reprojection);
-        for(var coordinate in reprojection){
-            tempArr = coordinate.match(/(\d+),(\d+)/);
-            
-            let cellCoordinate = {x: parseInt(tempArr[1]), y: parseInt(tempArr[2])};
-            
-            var result = calcCell(currentModel, cellCoordinate);
-            
-            newModel.board[cellCoordinate.x][cellCoordinate.y] = result.cell;
-            if(newModel.board[cellCoordinate.x][cellCoordinate.y].alive !== currentModel.board[cellCoordinate.x][cellCoordinate.y].alive){
-                updates.push({
-                    coordinate: {x: cellCoordinate.x, y: cellCoordinate.y},
-                    color: newModel.board[cellCoordinate.x][cellCoordinate.y].color,
-                    alive: newModel.board[cellCoordinate.x][cellCoordinate.y].alive
-                });
-            }
-            if(result.cell.alive){
-                newModel.livingCells.push(cellCoordinate);
-            }
-        }
+        //proceed to next generation
+        model.next.generation();
         
-        newModel.generation++;
-        return {model: newModel, updates: updates};
+        return updates;
     };
     
     
     return {
         initialize: model.initialize,
         processUpdates: processUpdates,
-        getNextGeneration: getNextGeneration,
-        getFastNextGeneration: getFastNextGeneration
+        getNextGeneration: getNextGeneration
     };
 })();

@@ -15,6 +15,7 @@ module.exports = (function(){
     
     var livingCells = []; //reserved for the next generation, gets pushed onto generations once fully populated
     
+    var reprojectionCells = [];
     
     function initialize(o){
         o = o || {};
@@ -25,11 +26,24 @@ module.exports = (function(){
         deadColor = o.deadColor || deadColor;  
         generations = [];
         livingCells = [];
+        reprojectionCells = [];
         update.generation();//"prime the pump": we need a generation present to start
     }
     
     function hashCoordinates(coordinate){
         return `${coordinate.x},${coordinate.y}`;
+    }
+    
+    function currentGeneration(){
+        return generations[generations.length-1];
+    }
+    
+    function addCellToArray(newCell, lifeArray){
+        var hash = hashCoordinates(newCell.coordinate);
+        if(!lifeArray[hash]){
+            lifeArray.push(newCell);      //we want both an array
+            lifeArray[hash] = newCell;    //and a hash table
+        }        
     }
     
     var get = {//we copy everything, so state can't be changed with the get functions
@@ -42,12 +56,12 @@ module.exports = (function(){
         },
         cell: function(coordinate){
             var hash = hashCoordinates(coordinate);
-            var cell = generations[generations.length-1][hash];
+            var cell = currentGeneration()[hash];
             if(cell){
                 return {
                     coordinate: {x:cell.x, y:cell.y},
                     color: {r:cell.color.r, g:cell.color.g, b:cell.color.b},
-                    alive: cell.alive //this should always be true, but best to return stored value.
+                    alive: cell.alive //this will 'almost' always be true; there are cases it could be false
                 };
             }else{
                 return {
@@ -89,7 +103,7 @@ module.exports = (function(){
             };
         },
         living: function(mapFunction){
-            var living = generations[generations.length-1];
+            var living = currentGeneration();
             var lifeCount = living.length;
             var copyLiving = [];
             var cell;
@@ -119,10 +133,33 @@ module.exports = (function(){
         }
     };
     
-    var update = {
+    var update = {        
+        cell: function (cell){
+            var newCell = {//we copy the in coming object, so there is no external reference
+                coordinate: {x:cell.coordinate.x, y:cell.coordinate.y},
+                color: {r:cell.color.r, g:cell.color.b, b:cell.color.b},
+                alive: cell.alive
+            };
+            
+            var hash = hashCoordinates(newCell.coordinate);
+            var living = currentGeneration();
+            
+            if(living[hash]){
+                living[hash] = newCell;
+            }else{
+                if(newCell.alive){
+                    addCellToArray(newCell, living);
+                }
+            }
+            
+        }
+    };
+    
+    var next = {
         generation: function (){ //only call when done with the current generation       
             generations.push(livingCells);
             livingCells = [];
+            reprojectionCells = [];
             return {
                 generation: generations.length
             };
@@ -134,18 +171,28 @@ module.exports = (function(){
                 alive: cell.alive
             };
             
-            var hash = hashCoordinates(newCell.coordinate);
-            
             if(cell.alive){
-                livingCells.push(newCell);      //we want both an array
-                livingCells[hash] = newCell;    //and a hash table
+                addCellToArray(newCell, livingCells);
             };
         }
+    };
+    
+    var reprojection = {//dead neighbor processing
+            track: function(coordinate){
+                addCellToArray({coordinate: coordinate}, reprojectionCells);
+            },
+            process: function(mapFunction){
+                reprojectionCells.forEach(function(cell){
+                    mapfunction(cell.coordinate);
+                });
+            }
     };
     
     return {
         inilialize: initialize,
         get: get,
-        update: update
+        update: update,
+        next: next,
+        reprojection: reprojection
     };
 })();
