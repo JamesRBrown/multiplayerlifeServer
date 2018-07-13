@@ -11,9 +11,9 @@ module.exports = (function(){
     
     var deadColor = {r:215, g:215, b:215};
         
-    var generations = [];
+    var generations = []; //historic account of each generation, current generation is the last one
     
-    var livingCells = [];
+    var livingCells = []; //reserved for the next generation, gets pushed onto generations once fully populated
     
     
     function initialize(o){
@@ -25,7 +25,7 @@ module.exports = (function(){
         deadColor = o.deadColor || deadColor;  
         generations = [];
         livingCells = [];
-        update.generation();//"prime the pump"
+        update.generation();//"prime the pump": we need a generation present to start
     }
     
     function hashCoordinates(coordinate){
@@ -43,17 +43,26 @@ module.exports = (function(){
         cell: function(coordinate){
             var hash = hashCoordinates(coordinate);
             var cell = generations[generations.length-1][hash];
-            return {
-                coordinate: {x:cell.x, y:cell.y},
-                color: {r:cell.color.r, g:cell.color.g, b:cell.color.b},
-                alive: cell.alive
-            };
+            if(cell){
+                return {
+                    coordinate: {x:cell.x, y:cell.y},
+                    color: {r:cell.color.r, g:cell.color.g, b:cell.color.b},
+                    alive: cell.alive //this should always be true, but best to return stored value.
+                };
+            }else{
+                return {
+                    coordinate: {x:cell.x, y:cell.y},
+                    color: {r:deadColor.r, g:deadColor.g, b:deadColor.b},   //we'll assume it died
+                    alive: false                                            //but this is the only value that matters 
+                };
+            }
+            
         },
         generation: function(){
-            return generation;
+            return generations.length;
         },
         boardSize: function(){
-            return boardSize;
+            return {x:boardSize.x, y:boardSize.y};
         },
         colorOptions: function(){
             return { 
