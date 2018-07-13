@@ -1,8 +1,4 @@
 module.exports = (function(){
-    function copyObj(obj){
-        return JSON.parse(JSON.stringify(obj));
-    };
-    
     var cell = {
         coordinate: {x:0, y:0},
         color: {r:255, g:255, b:255},
@@ -32,6 +28,9 @@ module.exports = (function(){
         update.generation();//"prime the pump"
     }
     
+    function hashCoordinates(coordinate){
+        return `${coordinate.x},${coordinate.y}`;
+    }
     
     var get = {//we copy everything, so state can't be changed with the get functions
         newCell: function(){
@@ -42,7 +41,7 @@ module.exports = (function(){
             };
         },
         cell: function(coordinate){
-            var hash = `${coordinate.x},${coordinate.y}`;
+            var hash = hashCoordinates(coordinate);
             var cell = generations[generations.length-1][hash];
             return {
                 coordinate: {x:cell.x, y:cell.y},
@@ -120,7 +119,18 @@ module.exports = (function(){
             };
         },
         cell: function (cell){
+            var newCell = {//we copy the in coming object, so there is no external reference
+                coordinate: {x:cell.coordinate.x, y:cell.coordinate.y},
+                color: {r:cell.color.r, g:cell.color.b, b:cell.color.b},
+                alive: cell.alive
+            };
             
+            var hash = hashCoordinates(newCell.coordinate);
+            
+            if(cell.alive){
+                livingCells.push(newCell);      //we want both an array
+                livingCells[hash] = newCell;    //and a hash table
+            };
         }
     };
     
