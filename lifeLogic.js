@@ -214,6 +214,8 @@ module.exports = (function(){
     return {
         initialize: model.initialize,
         processUpdates: processUpdates,
-        getNextGeneration: getNextGeneration
+        getNextGeneration: getNextGeneration,
+        getGeneration: model.get.generation,
+        getAll: model.get.all
     };
 })();

@@ -94,53 +94,42 @@
         
         if(o.message === 'play'){
             play = true;
-            broadcast(JSON.stringify({
-                message: "play"
-            }));
+            
         }
         if(o.message === 'pause'){
             play = false;
-            broadcast(JSON.stringify({
-                message: "pause"
-            }));
+            
         }
         if(o.message === 'update'){
             rxUpdates.push(o.update);
-            log.log(rxUpdates);
-            var updates = life.copyObj(rxUpdates);
-            log.log(updates);
-            rxUpdates = [];
-            life.state.current(models)
-            sendUpdatedModel(models, updates);
+            processUpdates();
+            
         }
         if(o.message === 'nextTick'){
-            var updates = life.copyObj(rxUpdates);
-            rxUpdates = [];
-            model = nextTick(model, updates);
+            nextTick();
         }
         if(o.message === 'interval'){
-            interval = o.interval;
-            console.log(o.interval);
-            console.log(interval);
-            send.interval(interval);
+            send.interval(o.interval);
         }
         if(o.message === 'model'){
-            send.model(model);
-            send.interval(interval);
+            send.refresh();
             
         }
         if(o.message === 'size'){
-            model = newModel({
-                xSize: o.size.match(/(\d*)x(\d*)/)[1],
-                ySize: o.size.match(/(\d*)x(\d*)/)[2]
+            life.initialize({
+                boardSize:{
+                    x: o.size.match(/(\d*)x(\d*)/)[1],
+                    y: o.size.match(/(\d*)x(\d*)/)[2]
+                }
             });
-            send.model(model);
-            send.interval(interval);
+            send.refresh();
         }
         
     }
     
-    function broadcast(json){
+    function broadcast(o){
+        console.log(o);
+        var json = JSON.stringify(o);
         var updates = clients;
         clients = [];
         
@@ -153,71 +142,55 @@
             }
         }
     }
-    
-    function processUpdates(model, rxUpdates){ 
-        model = life.copyObj(model);
-        rxUpdates = life.copyObj(rxUpdates);
         
-        var result = life.processUpdates(model, rxUpdates);
-        
-        return {model: result.model, txUpdates: result.updates};
-    }
-    
-    function runGeneration(model){ 
-        model = life.copyObj(model);//TODO: needs to go
-        
-        var result = life.getFastNextGeneration(model);
-        
-        return {model: result.model, txUpdates: result.updates};
-    }
-    
     var send = {
         updates: function (txUpdates){
-            var send = {
+            broadcast({
                 message: 'updates',
                 updates: txUpdates
-            };
-
-            broadcast(JSON.stringify(send));
+            });
         },
-        model: function(model){
-            var send = {
+        model: function(){
+            broadcast({
                 message: 'model',
-                model: model
-            };
-
-            broadcast(JSON.stringify(send));
+                model: life.getAll()
+            });
         },
-        generation: function(model){
-            var send = {
+        generation: function(generation){
+            broadcast({
                 message: 'generation',
-                generation: model.generation
-            };
-
-            broadcast(JSON.stringify(send));
+                generation: generation
+            });
         },
-        interval: function(interval){
-            console.log(interval);
-            var send = {
+        interval: function(){
+            broadcast({
                 message: 'interval',
                 interval: interval
-            };
-
-            broadcast(JSON.stringify(send));
+            });
         },
-        refresh: function(interval){
-            
+        playState: function(){
+            if(play){
+                broadcast({
+                    message: "play"
+                });
+            }else{
+                broadcast({
+                    message: "pause"
+                });
+            }
+        },
+        refresh: function(){
+            send.model();
+            send.interval();
+            send.playState();
         }
     };
     
-    function nextTick(model, rxUpdates){
-        var results = processUpdates(model, rxUpdates);
-        model = results.model;
-        var txUpdates = results.txUpdates;
+    function nextTick(){
+        var txUpdates = life.processUpdates(rxUpdates);
         
-        results = runGeneration(model);
-        model = results.model;
-        results.txUpdates.forEach(function(update){
+        var results = life.getNextGeneration();
+        results.forEach(function(update){
             txUpdates.push(update);
         });
         
@@ -225,17 +198,17 @@
             send.updates(txUpdates);
         }
         
-        send.generation(model);
-        
-        return model;
+        send.generation(life.getGeneration());
+        rxUpdates = [];
     }
     
-    function sendUpdatedModel(models, rxUpdates){
-        var results = processUpdates(models, rxUpdates);
-        var txUpdates = results.txUpdates;
+    function processUpdates(){
+        log.log(rxUpdates);
+        var txUpdates = life.processUpdates(rxUpdates);
         
         if(txUpdates && txUpdates.length){
             send.updates(txUpdates);
+            rxUpdates = [];
         }
     }
     
@@ -243,9 +216,7 @@
     function runLoop(){
         //log.log("in the loop");
         if(play){
-            var updates = life.copyObj(rxUpdates);
-            rxUpdates = [];
-            model = nextTick(model, updates);
+            nextTick();
             
         }
         
