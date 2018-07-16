@@ -31,6 +31,7 @@
     var clients = [];
 
     (function(){
+        life.initialize();
         runLoop();
         
     })();

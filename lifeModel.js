@@ -9,6 +9,8 @@ module.exports = (function(){
     
     var boardColor = {r:255, g:255, b:255};
     
+    var defaultColor = {r:255, g:255, b:255};
+    
     var deadColor = {r:215, g:215, b:215};
         
     var generations = []; //historic account of each generation, current generation is the last one
@@ -19,7 +21,7 @@ module.exports = (function(){
     
     function initialize(o){
         o = o || {};
-        o = o.cell || {};
+        o.cell = o.cell || {};
         cell.color = o.cell.color || cell.color;
         boardSize = o.boardSize || boardSize;
         boardColor = o.boardColor || boardColor;
@@ -27,7 +29,7 @@ module.exports = (function(){
         generations = [];
         livingCells = [];
         reprojectionCells = [];
-        update.generation();//"prime the pump": we need a generation present to start
+        next.generation();//"prime the pump": we need a generation present to start
     }
     
     function hashCoordinates(coordinate){
@@ -55,8 +57,14 @@ module.exports = (function(){
             };
         },
         cell: function(coordinate){
+            console.log("coordinate:");
+            console.log(coordinate);
             var hash = hashCoordinates(coordinate);
-            var cell = currentGeneration()[hash];
+            var livingCells = currentGeneration();
+            //console.log(livingCells);
+            console.log("hash"+hash);
+            //console.log(livingCells[hash]);
+            var cell = livingCells[hash];
             if(cell){
                 return {
                     coordinate: {x:cell.x, y:cell.y},
@@ -95,6 +103,13 @@ module.exports = (function(){
                 b: boardColor.b
             };
         },
+        defaultColor: function(){
+            return {
+                r: defaultColor.r,
+                g: defaultColor.g,
+                b: defaultColor.b
+            };
+        },
         deadColor: function(){
             return {
                 r: deadColor.r,
@@ -127,6 +142,7 @@ module.exports = (function(){
                 boardSize: get.boardSize(),
                 colorOptions: get.colorOptions(),
                 boardColor: get.boardColor(),
+                defaultColor: get.defaultColor(),
                 deadColor: get.deadColor(),
                 living: get.living()
             };
@@ -189,7 +205,7 @@ module.exports = (function(){
     };
     
     return {
-        inilialize: initialize,
+        initialize: initialize,
         get: get,
         update: update,
         next: next,

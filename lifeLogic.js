@@ -12,7 +12,7 @@ module.exports = (function(){
         app: "Life Server"    //set app name, used for email function
     });//*/ 
     
-    var model = require('lifeModel.js');
+    var model = require('./lifeModel.js');
     
     var find = {
             north: function(coordinate){
@@ -212,7 +212,9 @@ module.exports = (function(){
     
     
     return {
-        initialize: model.initialize,
+        initialize: function(o){
+            model.initialize(o);
+        },
         processUpdates: processUpdates,
         getNextGeneration: getNextGeneration,
         getGeneration: model.get.generation,
